@@ -1,0 +1,45 @@
+name: Deploy BMW Collection to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "github-pages"
+  cancel-in-progress: true
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+      - name: Build Angular app
+        run: npm run build -- --configuration production --base-href /design-2/
+      - name: Add SPA fallback
+        run: cp dist/bmw-collection/browser/index.html dist/bmw-collection/browser/404.html
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+      - name: Upload site
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist/bmw-collection/browser
+      - name: Deploy to Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
