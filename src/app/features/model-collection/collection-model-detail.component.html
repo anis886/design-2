@@ -1,0 +1,23 @@
+<div class="rg-detail-page">
+  <header class="detail-nav"><strong>REVGATE</strong><button type="button" (click)="back()">← &nbsp;MODEL COLLECTION</button></header>
+  @if (model; as car) {
+    <main>
+      <p class="label">BMW / MODEL DETAILS</p>
+      <h1>{{ car.name }}</h1>
+      <figure [class.fallback]="car.imageIsReferenceThumbnail">
+        <img [src]="car.image" [alt]="car.name" (error)="imageFallback($event, car)" />
+      </figure>
+      <div class="details">
+        <div><span>BODY STYLE</span><strong>{{ car.bodyType }}</strong></div>
+        <div><span>FUEL</span><strong>{{ car.fuelType ?? '—' }}</strong></div>
+        <div><span>POWER</span><strong>{{ car.horsepower == null ? '—' : car.horsepower + ' hp' }}</strong></div>
+        <div><span>0–100 km/h</span><strong>{{ car.acceleration ?? '—' }}</strong></div>
+      </div>
+      <button class="return" type="button" (click)="back()">← Back to all BMW models</button>
+    </main>
+  } @else {
+    <main class="not-found"><h1>Model not found.</h1><p>This model is not in the selected collection.</p>
+      <button class="return" type="button" (click)="back()">Back to BMW collection</button>
+    </main>
+  }
+</div>

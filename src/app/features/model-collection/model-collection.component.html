@@ -1,0 +1,194 @@
+<div class="rg-collection-page">
+  <header class="topbar">
+    <div class="topbar__start">
+      <button class="icon-button topbar__menu" type="button" aria-label="Open site navigation"
+        [attr.aria-expanded]="drawerOpen()" (click)="drawerOpen.set(!drawerOpen())">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+      <span class="brand-wordmark">REVGATE</span>
+    </div>
+    <button class="back-link" type="button" (click)="back()">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12H4m7-7-7 7 7 7"/></svg>
+      <span>BACK</span>
+    </button>
+  </header>
+
+  <div class="page-shell">
+    <section class="intro" aria-label="Collection search">
+      <div class="intro__heading">
+        <p class="eyebrow eyebrow--muted">MODEL COLLECTION</p>
+        <h1>{{ collection.heading }}</h1>
+      </div>
+      <div class="toolbar">
+        <label class="search-field">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="7"/><path d="m16 16 5.1 5.1"/></svg>
+          <span class="sr-only">Search models, body types or keywords</span>
+          <input type="search" [value]="searchQuery()" (input)="setSearch($any($event.target).value)"
+            placeholder="Search models, body types or keywords..." />
+        </label>
+        <div class="dropdown-wrap">
+          <button class="toolbar-button" type="button" aria-controls="filter-menu"
+            [attr.aria-expanded]="filterOpen()" (click)="toggleFilter()">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h18l-7 8v7l-4 2v-9L3 4Z"/></svg>
+            Filter
+            <svg class="chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+          </button>
+          @if (filterOpen()) {
+            <div class="dropdown-menu dropdown-menu--filter" id="filter-menu" role="group" aria-label="Filter models">
+              <div class="dropdown-head">BODY STYLE</div>
+              <div class="dropdown-options">
+                @for (style of bodyFilters; track style) {
+                  <button type="button" [class.chosen]="bodyFilter() === style" (click)="setBodyFilter(style)">
+                    {{ style }} @if (bodyFilter() === style) { <span aria-hidden="true">✓</span> }
+                  </button>
+                }
+              </div>
+              <div class="dropdown-head dropdown-head--separated">FUEL TYPE</div>
+              <div class="dropdown-options">
+                @for (fuel of fuelFilters; track fuel) {
+                  <button type="button" [class.chosen]="fuelFilter() === fuel" (click)="fuelFilter.set(fuel)">
+                    {{ fuel }} @if (fuelFilter() === fuel) { <span aria-hidden="true">✓</span> }
+                  </button>
+                }
+              </div>
+              <button type="button" class="dropdown-reset" (click)="clearFilters()">Reset all filters</button>
+            </div>
+          }
+        </div>
+        <div class="dropdown-wrap">
+          <button class="toolbar-button" type="button" aria-controls="sort-menu"
+            [attr.aria-expanded]="sortOpen()" (click)="toggleSort()">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h11M4 18h6"/></svg>
+            Sort
+            <svg class="chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+          </button>
+          @if (sortOpen()) {
+            <div class="dropdown-menu dropdown-menu--sort" id="sort-menu" role="group" aria-label="Sort models">
+              @for (sort of sorts; track sort.value) {
+                <button type="button" [class.chosen]="sortOption() === sort.value" (click)="chooseSort(sort.value)">
+                  {{ sort.label }} @if (sortOption() === sort.value) { <span aria-hidden="true">✓</span> }
+                </button>
+              }
+            </div>
+          }
+        </div>
+      </div>
+    </section>
+
+    <section class="collection-view" aria-label="BMW model collection">
+      <div class="collection-layout">
+        <div class="feature-pane">
+          @if (selectedCar(); as car) {
+            <div class="hero-media" [class.hero-media--product]="car.imageIsReferenceThumbnail">
+              <img class="hero-media__image" [src]="car.image" [alt]="car.name + ' front three-quarter view'"
+                (error)="imageFallback($event,car)" fetchpriority="high" />
+              <div class="hero-media__counter">{{ (activeIndex() + 1).toString().padStart(2, '0') }} / {{ displayedModelCount().toString().padStart(2, '0') }}</div>
+            </div>
+            <div class="vehicle-info">
+              <div class="vehicle-info__header">
+                <div class="vehicle-info__identity">
+                  <h2>{{ car.name }}</h2>
+                  <p>{{ car.bodyType }} <span>/</span> {{ formatFuel(car) }}</p>
+                </div>
+                <div class="vehicle-info__specs" aria-label="Key specifications">
+                  <div class="specification"><span>Power</span><strong>{{ formatPower(car) }}</strong></div>
+                  <div class="specification"><span>0–100 km/h</span><strong>{{ formatAcceleration(car) }}</strong></div>
+                </div>
+              </div>
+              <div class="vehicle-info__actions">
+                <button type="button" class="action-button action-button--compare" [attr.aria-pressed]="isCompared(car.id)"
+                  (click)="toggleCompare()">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v17M5 7h14M6 7l-4 7h8L6 7Zm12 0-4 7h8l-4-7ZM5 21h14"/></svg>
+                  {{ isCompared(car.id) ? 'Compared' : 'Compare' }}
+                </button>
+                <button type="button" class="action-button action-button--view" (click)="viewModel()">
+                  View model
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 18 18 6M8 6h10v10"/></svg>
+                </button>
+              </div>
+            </div>
+          } @else {
+            <div class="empty-hero"><strong>No matching vehicles</strong><p>Change your search or filters to explore the collection.</p>
+              <button type="button" class="action-button action-button--compare" (click)="clearFilters()">Clear filters</button>
+            </div>
+          }
+        </div>
+
+        <aside class="explorer-pane" aria-label="Explore models">
+          <p class="eyebrow explorer-pane__title">EXPLORE {{ displayedModelCount() }} {{ displayedModelCount() === 1 ? 'MODEL' : 'MODELS' }}</p>
+          <div class="category-tabs" role="group" aria-label="Body type categories">
+            @for (category of collection.categories; track category) {
+              <button type="button" [class.is-selected]="selectedCategory() === category && bodyFilter() === 'All'"
+                [attr.aria-pressed]="selectedCategory() === category && bodyFilter() === 'All'"
+                (click)="setCategory(category)">{{ category }}</button>
+            }
+          </div>
+          <div class="model-list" aria-live="polite">
+            @for (model of sortedModels(); track model.id; let index = $index) {
+              <button class="model-row" type="button" [class.is-active]="selectedCar()?.id === model.id"
+                [attr.aria-current]="selectedCar()?.id === model.id ? 'true' : null" (click)="select(model)">
+                <span class="model-row__number">{{ (index + 1).toString().padStart(2, '0') }}</span>
+                <span class="model-row__thumbnail"><img [src]="model.thumbnail" [alt]="model.name" loading="lazy" /></span>
+                <span class="model-row__description"><strong>{{ model.name }}</strong><small>{{ model.bodyType }}</small></span>
+                <svg class="model-row__arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h16m-6-6 6 6-6 6"/></svg>
+              </button>
+            } @empty {
+              <div class="model-list__empty">No matching models. Try a different search or filter.</div>
+            }
+          </div>
+        </aside>
+      </div>
+
+      <nav class="model-pagination" aria-label="Collection navigation">
+        <button type="button" (click)="move(-1)" [disabled]="displayedModelCount() === 0">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12H4m7-7-7 7 7 7"/></svg><span>Previous model</span>
+        </button>
+        <span class="model-pagination__line" aria-hidden="true"></span>
+        <button type="button" (click)="move(1)" [disabled]="displayedModelCount() === 0">
+          <span>Next model</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h16m-7-7 7 7-7 7"/></svg>
+        </button>
+      </nav>
+    </section>
+  </div>
+
+  @if (drawerOpen()) {
+    <div class="drawer-layer">
+      <button class="drawer-overlay" type="button" aria-label="Close navigation" (click)="drawerOpen.set(false)"></button>
+      <nav class="drawer" aria-label="RevGate navigation">
+        <div class="drawer__top"><strong>REVGATE</strong><button class="drawer__close" type="button" aria-label="Close navigation" (click)="drawerOpen.set(false)">×</button></div>
+        <button type="button" (click)="navigateTo('/main/home')">Home <span>↗</span></button>
+        <button type="button" (click)="navigateTo('/main/performance')">Performance <span>↗</span></button>
+        <button type="button" (click)="back()">BMW Brand <span>↗</span></button>
+        <button type="button" (click)="drawerOpen.set(false)">Model Collection <span>✓</span></button>
+      </nav>
+    </div>
+  }
+
+  @if (compareOpen()) {
+    <div class="compare-layer">
+      <button type="button" class="compare-overlay" aria-label="Close comparison" (click)="compareOpen.set(false)"></button>
+      <section class="compare-panel" role="dialog" aria-modal="true" aria-label="Compare BMW models">
+        <header><div><p class="eyebrow">REVGATE COMPARISON</p><h2>Compare models</h2></div>
+          <button type="button" class="compare-panel__close" aria-label="Close comparison" (click)="compareOpen.set(false)">×</button></header>
+        @if (compareNotice()) { <p class="compare-panel__notice" role="status">{{ compareNotice() }}</p> }
+        @if (comparisonCars().length === 0) {
+          <p>No vehicles selected. Choose a model, then select Compare.</p>
+        } @else {
+          <p class="compare-panel__hint">{{ comparisonCars().length }}/3 selected. {{ comparisonCars().length < 2 ? 'Select at least one more model to compare specifications.' : 'Your selected models are shown side by side.' }}</p>
+          <div class="comparison-grid" [class.comparison-grid--full]="comparisonCars().length === 3">
+            @for (car of comparisonCars(); track car.id) {
+              <div class="comparison-car">
+                <button type="button" class="comparison-car__remove" [attr.aria-label]="'Remove ' + car.name" (click)="removeCompared(car.id)">×</button>
+                <img [src]="car.thumbnail" [alt]="car.name" />
+                <h3>{{ car.name }}</h3>
+                <p>{{ car.bodyType }} / {{ formatFuel(car) }}</p>
+                <dl><dt>Power</dt><dd>{{ formatPower(car) }}</dd><dt>0–100 km/h</dt><dd>{{ formatAcceleration(car) }}</dd></dl>
+              </div>
+            }
+          </div>
+        }
+        <button type="button" class="compare-panel__done" (click)="compareOpen.set(false)">Continue exploring</button>
+      </section>
+    </div>
+  }
+</div>
